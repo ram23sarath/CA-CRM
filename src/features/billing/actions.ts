@@ -1,0 +1,9 @@
+"use server";
+import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { addInvoiceLine, createInvoice, issueInvoice, recordPayment } from "./service";
+const fail = (e: unknown) => e instanceof Error ? e.message : "Unable to update billing.";
+export async function createInvoiceAction(f: FormData) { try { const id = await createInvoice(String(f.get("clientId")), String(f.get("status")) === "PROFORMA" ? "PROFORMA" : "DRAFT", String(f.get("dueDate") ?? ""), String(f.get("notes") ?? "")); redirect(`/app/billing/invoices/${id}`); } catch (e) { redirect(`/app/billing?error=${encodeURIComponent(fail(e))}`); } }
+export async function addInvoiceLineAction(f: FormData) { const id = String(f.get("invoiceId")); try { await addInvoiceLine({ invoiceId: id, description: String(f.get("description")), quantity: Number(f.get("quantity")), rate: Number(f.get("rate")), taxRate: Number(f.get("taxRate") || 0), taxCode: String(f.get("taxCode") ?? ""), serviceId: String(f.get("serviceId") ?? "") || undefined, taskId: String(f.get("taskId") ?? "") || undefined }); revalidatePath(`/app/billing/invoices/${id}`); } catch (e) { redirect(`/app/billing/invoices/${id}?error=${encodeURIComponent(fail(e))}`); } }
+export async function issueInvoiceAction(f: FormData) { const id = String(f.get("invoiceId")); try { await issueInvoice(id); revalidatePath(`/app/billing/invoices/${id}`); revalidatePath("/app/billing"); } catch (e) { redirect(`/app/billing/invoices/${id}?error=${encodeURIComponent(fail(e))}`); } }
+export async function recordPaymentAction(f: FormData) { const id = String(f.get("invoiceId")); try { await recordPayment(id, Number(f.get("amount")), String(f.get("paymentDate")), String(f.get("reference") ?? "")); revalidatePath(`/app/billing/invoices/${id}`); revalidatePath("/app/billing"); } catch (e) { redirect(`/app/billing/invoices/${id}?error=${encodeURIComponent(fail(e))}`); } }

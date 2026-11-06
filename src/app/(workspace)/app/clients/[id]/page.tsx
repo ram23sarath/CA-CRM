@@ -1,0 +1,34 @@
+import Link from "next/link";
+import { notFound } from "next/navigation";
+
+import { Badge } from "@/components/ui/badge";
+import { ButtonLink } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { PageHeader } from "@/components/ui/page-header";
+import { archiveClientAction, archiveContactAction, saveContactAction, updateClientAction } from "@/features/clients/actions";
+import { ClientForm } from "@/features/clients/client-form";
+import { clientDocumentMaximumBytes } from "@/features/clients/config";
+import { DocumentUploadForm } from "@/features/clients/document-upload-form";
+import { clientMembers, getClientDetail } from "@/features/clients/service";
+
+export default async function ClientDetailPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ created?: string; saved?: string; restored?: string }> }) {
+  const { id } = await params; const message = await searchParams;
+  const [detail, members] = await Promise.all([getClientDetail(id), clientMembers()]);
+  if (!detail) notFound();
+  const { client, contacts, documents, counts } = detail; const primaryContact = contacts.find((contact) => contact.is_primary);
+  return <>
+    <PageHeader eyebrow="Client master" title={client.display_name} description={client.legal_name} actions={<div className="detail-actions"><ButtonLink href="/app/clients" variant="secondary">Back to clients</ButtonLink><Badge tone={client.archived_at ? "amber" : client.status === "ACTIVE" ? "success" : "navy"}>{client.archived_at ? "ARCHIVED" : client.status}</Badge></div>} />
+    {(message.created || message.saved || message.restored) && <p className="notice notice--info" role="status">{message.created ? "Client created successfully." : message.restored ? "Client restored successfully." : "Client changes saved successfully."}</p>}
+    <nav className="client-tabs" aria-label="Client detail sections"><a href="#overview">Overview</a><a href="#tasks">Tasks ({counts.tasks})</a><a href="#compliance">Compliance ({counts.compliance})</a><a href="#documents">Documents ({counts.documents})</a><a href="#billing">Billing</a><span aria-disabled="true">Notices · not enabled</span></nav>
+    <section id="overview" className="client-detail-section"><h2>Overview</h2><ClientForm action={updateClientAction} members={members} client={client} primaryContact={primaryContact} /><form action={archiveClientAction} className="archive-form"><input type="hidden" name="clientId" value={client.id} /><input type="hidden" name="archived" value={client.archived_at ? "false" : "true"} /><button type="submit" className="button button--ghost">{client.archived_at ? "Restore client" : "Archive client"}</button><span>{client.archived_at ? "Restoring keeps all existing linked work." : "Archiving keeps linked work intact and removes the client from the active list."}</span></form></section>
+    <section className="client-detail-section"><h2>Contacts</h2>{contacts.length ? <div className="contact-list">{contacts.map((contact) => <article key={contact.id} className="contact-card"><div><strong>{contact.full_name}</strong>{contact.is_primary && <Badge tone="teal">PRIMARY</Badge>}<p>{[contact.designation, contact.email, contact.phone].filter(Boolean).join(" · ") || "No contact details"}</p></div><div className="contact-card__actions"><details><summary>Edit contact</summary><ContactEditor clientId={client.id} contact={contact} /></details><form action={archiveContactAction}><input type="hidden" name="clientId" value={client.id} /><input type="hidden" name="contactId" value={contact.id} /><button className="button button--ghost button--small" type="submit">Remove</button></form></div></article>)}</div> : <EmptyState title="No contact yet" description="Add a contact below when you have one." /> }<details className="add-contact"><summary>Add contact</summary><ContactEditor clientId={client.id} /></details></section>
+    <section id="tasks" className="client-detail-section"><h2>Tasks</h2><ButtonLink href={`/app/tasks/new?client=${client.id}`} small>Create task for client</ButtonLink>{counts.tasks ? <p>There are {counts.tasks} linked task{counts.tasks === 1 ? "" : "s"}. Open the task workspace to filter and review them.</p> : <EmptyState title="No linked tasks" description="Create the first task for this client." />}</section>
+    <section id="compliance" className="client-detail-section"><h2>Compliance</h2>{counts.compliance ? <p>There are {counts.compliance} linked compliance period{counts.compliance === 1 ? "" : "s"}. <Link className="table-link" href={`/app/compliance?client=${client.id}`}>Open compliance calendar</Link>.</p> : <EmptyState title="No linked compliance work" description="Configured client periods will appear here." />}</section>
+    <section id="documents" className="client-detail-section"><h2>Documents</h2><DocumentUploadForm clientId={client.id} maximumMegabytes={Math.floor(clientDocumentMaximumBytes() / 1024 / 1024)} />{documents.length ? <ul className="document-list">{documents.map((document) => <li key={document.id}><div><strong>{document.file_name}</strong><span>{document.mime_type ?? "Unknown type"} · {document.byte_size ? `${Math.ceil(document.byte_size / 1024)} KB` : "size unavailable"}</span></div><Link className="button button--secondary button--small" href={`/api/clients/${client.id}/documents/${document.id}/download`}>Download</Link></li>)}</ul> : <EmptyState title="No documents" description="Uploaded documents remain private to your firm." />}</section>
+    <section id="billing" className="client-detail-section"><h2>Billing</h2><p><Link className="table-link" href={`/app/billing/invoices?client=${client.id}`}>Open this client&apos;s invoice register</Link> to create or review manual invoices.</p></section>
+  </>;
+}
+
+function ContactEditor({ clientId, contact }: { clientId: string; contact?: { id: string; full_name: string; email: string | null; phone: string | null; designation: string | null; is_primary: boolean } }) {
+  return <form action={saveContactAction} className="contact-form"><input type="hidden" name="clientId" value={clientId} />{contact && <input type="hidden" name="contactId" value={contact.id} />}<label>Full name<input className="input" name="fullName" required defaultValue={contact?.full_name ?? ""} /></label><label>Email<input className="input" name="email" type="email" defaultValue={contact?.email ?? ""} /></label><label>Phone<input className="input" name="phone" defaultValue={contact?.phone ?? ""} /></label><label>Designation<input className="input" name="designation" defaultValue={contact?.designation ?? ""} /></label><label className="checkbox-field"><input name="isPrimary" type="checkbox" defaultChecked={contact?.is_primary} /> Primary contact</label><button className="button button--secondary button--small" type="submit">{contact ? "Save contact" : "Add contact"}</button></form>;
+}

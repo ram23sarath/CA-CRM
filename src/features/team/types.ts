@@ -1,0 +1,14 @@
+export type TeamMember = { profile_id: string; role: string; status: string; profiles?: { full_name?: string | null; display_name?: string | null } | null };
+export type AttendanceRow = { id: string; profile_id: string; work_date: string; checked_in_at: string; checked_out_at: string | null; note: string | null };
+export type LeaveRow = { id: string; requester_profile_id: string; leave_type: string; start_date: string; end_date: string; reason: string | null; status: string; decided_by_profile_id: string | null; decision_note: string | null; created_at: string };
+export type TimesheetRow = { id: string; profile_id: string; task_id: string | null; client_id: string | null; work_date: string; minutes: number; description: string; status: string; created_at: string };
+export type ReimbursementRow = { id: string; profile_id: string; amount: number; currency: string; expense_date: string; description: string; status: string; created_at: string };
+export type NotificationRow = { id: string; kind: string; title: string; body: string; action_url: string | null; read_at: string | null; created_at: string };
+export type NotificationPreferences = { opt_out_all: boolean; email_enabled: boolean; whatsapp_enabled: boolean; preferred_channel: "INTERNAL" | "EMAIL" | "WHATSAPP" };
+export type AutomationRuleRow = { id: string; name: string; trigger: string; conditions: Record<string, unknown>; recipient_type: string; recipient_profile_id: string | null; channel: string; action: string; enabled: boolean; paused_at: string | null; throttle_minutes: number; last_run_at: string | null; created_at: string };
+export type AutomationSettings = { paused: boolean; safe_preview_mode: boolean; max_attempts: number; updated_at?: string };
+export type DeliveryRow = { id: string; event_id: string; rule_id: string; recipient_profile_id: string; channel: string; action: string; status: string; preview_only: boolean; attempts: number; last_error: string | null; created_at: string; completed_at: string | null };
+export type JobRow = { id: string; job_type: string; status: string; preview_mode: boolean; claimed_count: number; success_count: number; failure_count: number; dead_letter_count: number; error: string | null; started_at: string; finished_at: string | null };
+export type TaskOption = { id: string; title: string };
+export type ClientOption = { id: string; display_name: string };
+export type TeamWorkspace = { firmId: string; userId: string; firm: { name: string; timezone: string }; members: TeamMember[]; attendance: AttendanceRow[]; leave: LeaveRow[]; timesheets: TimesheetRow[]; reimbursements: ReimbursementRow[]; notifications: NotificationRow[]; preferences: NotificationPreferences; rules: AutomationRuleRow[]; settings: AutomationSettings; deliveries: DeliveryRow[]; jobs: JobRow[]; tasks: TaskOption[]; clients: ClientOption[] };

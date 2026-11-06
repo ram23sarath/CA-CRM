@@ -1,0 +1,42 @@
+export type CompliancePeriod = {
+  id: string;
+  client_id: string;
+  type_code: string;
+  period_key: string;
+  period_start: string;
+  period_end: string;
+  due_date: string;
+  status: string;
+  assigned_to_profile_id: string | null;
+  task_id: string | null;
+  evidence_document_id: string | null;
+  filing_reference: string | null;
+  source: string;
+  last_verified_date: string | null;
+  last_updated_by_profile_id: string | null;
+  updated_at: string;
+  created_at: string;
+  client?: { display_name: string };
+  owner?: { full_name: string };
+  lastUpdater?: { full_name: string };
+  displayStatus?: string;
+};
+
+export type ExpiryRegister = {
+  id: string;
+  register_type: "DSC" | "LICENSE";
+  name: string;
+  client_id: string | null;
+  owner_profile_id: string | null;
+  custodian_profile_id: string | null;
+  expiry_date: string;
+  reminder_date: string | null;
+  status: "ACTIVE" | "EXPIRED" | "REVOKED" | "RENEWED";
+  source: "MANUAL" | "IMPORTED";
+  last_verified_date: string | null;
+  updated_at: string;
+  client?: { display_name: string };
+  owner?: { full_name: string };
+  custodian?: { full_name: string };
+  effectiveStatus?: string;
+};

@@ -1,0 +1,5 @@
+import Link from "next/link";
+
+export function DashboardSummary({ summary }: { summary: { overdueOrDue: number; expiringSoon: { id: string; register_type: string; name: string; expiry_date: string }[]; timeZone: string } }) {
+  return <section className="dashboard-grid" aria-label="Compliance summary"><article className="dashboard-card"><h2>Due or overdue compliance</h2><strong>{summary.overdueOrDue}</strong><p>Unresolved periods at or before today in {summary.timeZone}.</p><p><Link className="table-link" href="/app/compliance?status=OVERDUE">Review calendar</Link></p></article><article className="dashboard-card"><h2>Expiring soon</h2><strong>{summary.expiringSoon.length}</strong><p>Active DSC and license records expiring in the next 30 days.</p>{summary.expiringSoon.length > 0 && <ul className="dashboard-expiry-list">{summary.expiringSoon.map((record) => <li key={record.id}><span>{record.register_type} · {record.name}</span><time dateTime={record.expiry_date}>{record.expiry_date}</time></li>)}</ul>}<p><Link className="table-link" href="/app/compliance">Open registers</Link></p></article></section>;
+}
