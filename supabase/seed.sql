@@ -9,16 +9,16 @@ values
   ('20000000-0000-0000-0000-000000000001', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'owner@northstar.example.test', '', null, '{"provider":"email","providers":["email"]}'::jsonb, '{"display_name":"Asha Mehta"}'::jsonb, timezone('utc', now()), timezone('utc', now())),
   ('20000000-0000-0000-0000-000000000002', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'manager@northstar.example.test', '', null, '{"provider":"email","providers":["email"]}'::jsonb, '{"display_name":"Rohan Sen"}'::jsonb, timezone('utc', now()), timezone('utc', now())),
   ('20000000-0000-0000-0000-000000000003', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'staff@northstar.example.test', '', null, '{"provider":"email","providers":["email"]}'::jsonb, '{"display_name":"Mira Shah"}'::jsonb, timezone('utc', now()), timezone('utc', now())),
-  ('20000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'other-firm@northstar.example.test', '', null, '{"provider":"email","providers":["email"]}'::jsonb, '{"display_name":"Kabir Rao"}'::jsonb, timezone('utc', now()), timezone('utc', now())
+  ('20000000-0000-0000-0000-000000000004', '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated', 'other-firm@northstar.example.test', '', null, '{"provider":"email","providers":["email"]}'::jsonb, '{"display_name":"Kabir Rao"}'::jsonb, timezone('utc', now()), timezone('utc', now()))
 on conflict (id) do nothing;
 
-insert into public.profiles (id, display_name)
+insert into public.profiles (id, display_name, full_name)
 values
-  ('20000000-0000-0000-0000-000000000001', 'Asha Mehta'),
-  ('20000000-0000-0000-0000-000000000002', 'Rohan Sen'),
-  ('20000000-0000-0000-0000-000000000003', 'Mira Shah'),
-  ('20000000-0000-0000-0000-000000000004', 'Kabir Rao')
-on conflict (id) do update set display_name = excluded.display_name;
+  ('20000000-0000-0000-0000-000000000001', 'Asha Mehta', 'Asha Mehta'),
+  ('20000000-0000-0000-0000-000000000002', 'Rohan Sen', 'Rohan Sen'),
+  ('20000000-0000-0000-0000-000000000003', 'Mira Shah', 'Mira Shah'),
+  ('20000000-0000-0000-0000-000000000004', 'Kabir Rao', 'Kabir Rao')
+on conflict (id) do update set display_name = excluded.display_name, full_name = excluded.full_name;
 
 insert into public.firms (id, name, legal_name, plan, approval_status, created_by_profile_id)
 values
